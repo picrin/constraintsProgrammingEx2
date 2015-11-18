@@ -1,0 +1,3 @@
+source allFiles
+name="resultSolve"
+makeResult $1

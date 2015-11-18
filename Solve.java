@@ -1,26 +1,38 @@
+import java.util.Scanner;
+import java.util.InputMismatchException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 import org.chocosolver.solver.*;
 import org.chocosolver.solver.variables.*;
 import org.chocosolver.solver.constraints.*;
-import java.util.InputMismatchException;
+import org.chocosolver.solver.search.loop.monitors.SearchMonitorFactory;
+import org.chocosolver.solver.search.strategy.*;
+import org.chocosolver.solver.search.strategy.selectors.*;
+import org.chocosolver.solver.search.strategy.selectors.variables.*;
+import org.chocosolver.solver.search.strategy.strategy.*;
 
 public class Solve {
-
 	public static void main(String[] args) {
 		new Solve()	.readProblem(args)
 					.setupSolver()
 					.addVariables()
 					.findPotentiallyParallelMeetings()
 					.addConstraints()
+					.timeout(args)
+					.chooseHeuristic(args)
 					.solveProblem()
 					.printSolution()
+					.printStats()
 					.exitSuccessfuly();
 	}
 
+	final static String USAGE = "Usage is Solve|Optimise <problemFilename> [<timeout>] [<strategy>]";
+
 	public Solve() {
+
 	}
+
+	String terminationMessage;
 
 	public Solve thisOrDie() {
 		if (terminationMessage != null) {
@@ -30,10 +42,13 @@ public class Solve {
 		return this;
 	}
 
-	public Solve exitSuccessfuly() {
-		System.exit(0);
-		return this;
-	}
+	int noMeetings;
+	int noAgents;
+	int noTimeslots;
+	IntVar[] meetings;
+	int[][] distance;
+	boolean[][] canOccurInParallel;
+	boolean[][] isAttended;
 
 	public Solve readProblem(String[] args) {
 		int i, j, value;
@@ -61,7 +76,8 @@ public class Solve {
 				}
 			}
 		} catch (IOException e) {
-			terminationMessage = "Can't open file. Check that file exists";
+			terminationMessage = "Can't open file " + args[0]
+					+ ". Check that file exists";
 		} catch (NullPointerException e) {
 			terminationMessage = USAGE;
 		} catch (ArrayIndexOutOfBoundsException e) {
@@ -71,6 +87,9 @@ public class Solve {
 		}
 		return thisOrDie();
 	}
+
+	Solver solver;
+	boolean solutionFound = false;
 
 	public Solve setupSolver() {
 		solver = new Solver("Meeting Scheduling Problem");
@@ -124,6 +143,65 @@ public class Solve {
 		return thisOrDie();
 	}
 
+	public Solve chooseHeuristic(String[] args) {
+		String strategyStr = null;
+		if (args.length > 1) {
+			try {
+				Integer.parseInt(args[1]);
+				if (args.length > 2) {
+					strategyStr = args[2];
+				} else {
+					strategyStr = "DomOverWDeg";
+				}
+			} catch (NumberFormatException e) {
+				strategyStr = args[1];
+			}
+		} else {
+			strategyStr = "FirstFail";
+		}
+		AbstractStrategy<IntVar> strategy = null;
+		VariableSelector<IntVar> variableSelector = null;
+		IntValueSelector valueSelector = null;
+		if (meetings.length > 1) {
+			switch (strategyStr) {
+			case "DomOverWDeg":
+				valueSelector = IntStrategyFactory.min_value_selector();
+				strategy = new DomOverWDeg(meetings, 100, valueSelector);
+				break;
+			case "FirstFail":
+				variableSelector = new FirstFail();
+				valueSelector = IntStrategyFactory.min_value_selector();
+				strategy = IntStrategyFactory.custom(variableSelector,
+						valueSelector, meetings);
+				break;
+			case "Occurrence":
+				variableSelector = new Occurrence<IntVar>();
+				valueSelector = IntStrategyFactory.min_value_selector();
+				strategy = IntStrategyFactory.custom(variableSelector,
+						valueSelector, meetings);
+				break;
+			case "AntiFirstFail":
+				variableSelector = new AntiFirstFail();
+				valueSelector = IntStrategyFactory.min_value_selector();
+				strategy = IntStrategyFactory.custom(variableSelector,
+						valueSelector, meetings);
+				break;
+			case "None":
+				return thisOrDie();
+			case "ActivityBased":
+				strategy = new ActivityBased(solver, meetings, 0.5, 0.5, 1, 1,
+						100);
+				break;
+			default:
+				terminationMessage = "you've chosen incorrect strategy, try DomOverWDeg, FirstFail, Occurrence or AntiFirstFail, None or ActivityBased";
+				break;
+			}
+		}
+		solver.set(strategy);
+		return thisOrDie();
+
+	}
+
 	public Solve solveProblem() {
 		solutionFound = solver.findSolution();
 		return thisOrDie();
@@ -134,30 +212,41 @@ public class Solve {
 			for (int i = 0; i < noMeetings; i++) {
 				System.out.println(i + " " + meetings[i].getValue());
 			}
-			System.out.println();
-			System.out.println(solver	.getMeasures()
-										.getNodeCount());
-			System.out.println(solver	.getMeasures()
-										.getTimeCount());
+
 		} else {
 			System.out.println(false);
 		}
 		return thisOrDie();
 	}
 
-	boolean solutionFound = false;
-	Solver solver;
-	int noMeetings;
-	int noAgents;
-	int noTimeslots;
+	public Solve printStats() {
+		System.out.println();
+		System.out.println(solver	.getMeasures()
+									.getNodeCount());
+		System.out.println(solver	.getMeasures()
+									.getTimeCount());
+		return thisOrDie();
+	}
 
-	IntVar[] meetings;
+	public Solve exitSuccessfuly() {
+		System.exit(0);
+		return this;
+	}
 
-	int[][] distance;
-	boolean[][] canOccurInParallel;
-	boolean[][] isAttended;
+	/**
+	 * Stub of a method to be overridden by Optimise.
+	 */
 
-	String terminationMessage;
-	final static String USAGE = "Usage is Solve|Optimise <problemFilename> [<timeout>]";
-
+	long timeout;
+	
+	public Solve timeout(String[] args) {
+		if (args.length > 1) {
+			try {
+				timeout = Integer.parseInt(args[1]);
+				SearchMonitorFactory.limitTime(solver, timeout);
+			} catch (NumberFormatException e) {
+			}
+		}
+		return thisOrDie();
+	}
 }

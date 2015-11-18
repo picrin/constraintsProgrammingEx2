@@ -1,0 +1,13 @@
+heuristics=(DomOverWDeg FirstFail Occurrence AntiFirstFail None ActivityBased)
+makeResult() {
+  for heuristic in ${heuristics[*]}; do
+    results="$name$heuristic"
+    touch $results
+    rm $results
+    for file in rProblems/*; do
+      java Solve "$file" $1 $heuristic | tail -2 >> $results;
+    done;
+    python processResults.py $results
+  done;
+}
+

@@ -1,0 +1,3 @@
+javac *.java
+mv Solve.class benchmark/
+mv Optimise.class benchmark/

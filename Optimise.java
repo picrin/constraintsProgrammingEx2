@@ -4,17 +4,6 @@ import org.chocosolver.solver.constraints.*;
 
 public class Optimise extends Solve {
 
-	public static void main(String[] args) {
-		new Optimise()	.readProblem(args)
-						.setupSolver()
-						.addVariables()
-						.findPotentiallyParallelMeetings()
-						.addConstraints()
-						.solveProblem()
-						.printSolution()
-						.exitSuccessfuly();
-	}
-
 	/**
 	 * 
 	 * <p>
@@ -38,8 +27,10 @@ public class Optimise extends Solve {
 	 * will be optimised by the solver.
 	 * </p>
 	 * 
-	 * TODO is second approach sensible?
 	 */
+
+	IntVar timeslots;
+
 	@Override
 	public Solve addVariables() {
 		noTimeslots = 0;
@@ -48,7 +39,6 @@ public class Optimise extends Solve {
 		}
 		noTimeslots += 1;
 		timeslots = VF.bounded("timeslots", 0, noTimeslots - 1, solver);
-		System.out.println(noTimeslots);
 		super.addVariables();
 		return thisOrDie();
 	}
@@ -82,13 +72,12 @@ public class Optimise extends Solve {
 		solutionFound = true;
 		return thisOrDie();
 	}
-	
+
 	@Override
-	public Solve printSolution() {
-		super.printSolution();
-		System.out.println(timeslots);
+	public Solve printStats() {
+		System.out.println("\n" + timeslots);
+		super.printStats();
 		return thisOrDie();
 	}
 
-	IntVar timeslots;
 }

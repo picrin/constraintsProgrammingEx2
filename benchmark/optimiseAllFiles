@@ -1,0 +1,3 @@
+source allFiles
+name="resultOptimise"
+makeResult $1
