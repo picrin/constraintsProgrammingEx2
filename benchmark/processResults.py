@@ -13,5 +13,4 @@ with open(sys.argv[1]) as re:
     print("median for time", sys.argv[1], " ", median(times))
     print("avg for nodes ", sys.argv[1], " " , sum(nodes)/len(nodes))
     print("median for nodes", sys.argv[1], " ", median(nodes))
-    print("max for time", sys.argv[1], " ", max(times))
-    print("max for nodes", sys.argv[1], " ", max(nodes))
+    print("unsolved in 59 seconds", sys.argv[1], " ", len([time for time in times if time > 59]))
