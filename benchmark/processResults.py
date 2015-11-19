@@ -1,5 +1,6 @@
 import sys
 def median(lista):
+    lista.sort()
     ll = len(lista)
     if ll % 2 == 1:
          return (lista[ll/2] + lista[ll/2 + 1])/2

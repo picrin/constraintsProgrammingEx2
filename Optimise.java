@@ -31,6 +31,9 @@ public class Optimise extends Solve {
 
 	IntVar timeslots;
 
+	/**
+	 * We're adding an extra variable timeslots, which will be optimised to
+	 */
 	@Override
 	public Solve addVariables() {
 		noTimeslots = 0;
@@ -72,7 +75,10 @@ public class Optimise extends Solve {
 		solutionFound = true;
 		return thisOrDie();
 	}
-
+	
+	/**
+	 * @see Solve#printStats()
+	 */
 	@Override
 	public Solve printStats() {
 		System.out.println("\n" + timeslots);
