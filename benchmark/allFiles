@@ -1,4 +1,4 @@
-heuristics=(DomOverWDeg FirstFail Occurrence AntiFirstFail None ActivityBased)
+heuristics=(None)
 makeResult() {
   for heuristic in ${heuristics[*]}; do
     results="$name$heuristic"

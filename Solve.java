@@ -30,7 +30,7 @@ public class Solve {
 
 	public Solve() {
 
-	}
+	} 
 
 	String terminationMessage;
 
@@ -122,27 +122,50 @@ public class Solve {
 		}
 		return thisOrDie();
 	}
-
+        /**
+         * Add Constraints to the solver.
+         *
+         * <p> 
+         * Creates constraints in accordance with the following model:
+         * constrain each pair of meetings, which can't occur together,
+         * so that their distance is strictly greater than in the distance
+         * matrix. It is required they're strictly greater, in order
+         * to allow for both travel and the duration of the meeting,
+         * which is 1 hour.
+         * </p>
+         */
 	public Solve addConstraints() {
 		for (int meetingA = 0; meetingA < noMeetings; meetingA++) {
 			for (int meetingB = meetingA
 					+ 1; meetingB < noMeetings; meetingB++) {
 				if (!canOccurInParallel[meetingA][meetingB]) {
-					Constraint c1 = ICF.arithm(meetings[meetingA], "-",
+                                        Constraint d = ICF.distance(meetings[meetingA], meetings[meetingB], ">", distance[meetingA][meetingB]);
+					solver.post(d);
+					/*Constraint c1 = ICF.arithm(meetings[meetingA], "-",
 							meetings[meetingB], ">",
 							distance[meetingA][meetingB]);
 					Constraint c2 = ICF.arithm(meetings[meetingB], "-",
 							meetings[meetingA], ">",
 							distance[meetingA][meetingB]);
+					
 					Constraint or = LCF.or(c1, c2);
 					solver.post(or);
+					*/
 				}
 
 			}
 		}
 		return thisOrDie();
 	}
-
+        
+        
+        /**
+         * Allows the user to choose o Choco Heuristic
+         *
+         * Supported Heuristics are:
+         * Choco's default is supported through passing None,
+         * DomOverWDeg, FirstFail, Occurrence or AntiFirstFail, None or ActivityBased 
+         */ 
 	public Solve chooseHeuristic(String[] args) {
 		String strategyStr = null;
 		if (args.length > 1) {
@@ -151,13 +174,13 @@ public class Solve {
 				if (args.length > 2) {
 					strategyStr = args[2];
 				} else {
-					strategyStr = "DomOverWDeg";
+					strategyStr = "None";
 				}
 			} catch (NumberFormatException e) {
 				strategyStr = args[1];
 			}
 		} else {
-			strategyStr = "FirstFail";
+			strategyStr = "None";
 		}
 		AbstractStrategy<IntVar> strategy = null;
 		VariableSelector<IntVar> variableSelector = null;

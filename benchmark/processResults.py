@@ -6,12 +6,13 @@ def median(lista):
          return (lista[ll/2] + lista[ll/2 + 1])/2
     else:
          return lista[ll/2]
-with open(sys.argv[1]) as re:
-    lista = re.readlines()
-    times = [float(elem) for index, elem in enumerate(lista) if index%2 == 1]
-    nodes = [float(elem) for index, elem in enumerate(lista) if index%2 == 0]
-    print("avg for time ", sys.argv[1], " " , sum(times)/len(times))
-    print("median for time", sys.argv[1], " ", median(times))
-    print("avg for nodes ", sys.argv[1], " " , sum(nodes)/len(nodes))
-    print("median for nodes", sys.argv[1], " ", median(nodes))
-    print("unsolved in 59 seconds", sys.argv[1], " ", len([time for time in times if time > 59]))
+for filename in sys.argv[1:]:
+    with open(filename) as re:
+        lista = re.readlines()
+        times = [float(elem) for index, elem in enumerate(lista) if index%2 == 1]
+        nodes = [float(elem) for index, elem in enumerate(lista) if index%2 == 0]
+        print("avg for time ", filename, " " , sum(times)/len(times))
+        print("median for time", filename, " ", median(times))
+        print("avg for nodes ", filename, " " , sum(nodes)/len(nodes))
+        print("median for nodes", filename, " ", median(nodes))
+        print("unsolved in 59 seconds", filename, " ", len([time for time in times if time > 59]))
